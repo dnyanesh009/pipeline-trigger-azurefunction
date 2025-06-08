@@ -22,6 +22,10 @@ SDK.ready().then(async () => {
     const pipelineId = (document.getElementById("pipelineId") as HTMLInputElement).value.trim();
     const orgUrl = (document.getElementById("orgUrl") as HTMLInputElement).value.trim();
     const project = (document.getElementById("project") as HTMLInputElement).value.trim();
+    const func_key = (document.getElementById("func_key") as HTMLInputElement).value.trim();
+    const your_func_name = (document.getElementById("your_func_name") as HTMLInputElement).value.trim();
+
+
 
     if (!pipelineId || !orgUrl || !project) {
       statusDiv.textContent = "Please fill in all fields.";
@@ -30,8 +34,8 @@ SDK.ready().then(async () => {
     }
 
     const normalizedOrgUrl = orgUrl.endsWith("/") ? orgUrl.slice(0, -1) : orgUrl;
-    const azureFunctionUrl = "https://<your-function-app>.azurewebsites.net/api/TriggerPipeline";
-
+    const azureFunctionUrl = "https://<your_func_name>.azurewebsites.net/api/TriggerPipeline?code=<function-key>";
+ 
     try {
       statusDiv.textContent = "Triggering pipeline via Azure Function...";
       statusDiv.style.color = "black";

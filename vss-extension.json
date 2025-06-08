@@ -3,7 +3,7 @@
   "id": "pipeline-trigger-button-az-function",
   "name": "Pipeline Trigger Az function",
   "publisher": "AnkitaGhogare",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Adds a customizable button to work items to trigger pipelines.",
   "icons": {
     "default": "images/icon.png"

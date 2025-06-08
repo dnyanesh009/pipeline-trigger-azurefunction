@@ -1,157 +1,100 @@
-Here's the **complete `README.md`** file in Markdown format for your Azure DevOps custom extension that triggers a pipeline 
-
-yet to implement  - using an Azure Function:
+Here’s a clear, step-by-step guide to **deploy an Azure Function via the Azure Portal** and securely **add your PAT as an environment variable**.
 
 ---
 
-```markdown
-# 🚀 Azure DevOps Custom Pipeline Trigger Button Extension
+## ✅ Step 1: Create an Azure Function App (Portal UI)
 
-This Azure DevOps extension adds a **custom button** to work item forms that allows users to **trigger a pipeline** with custom input fields.
+1. Go to [https://portal.azure.com](https://portal.azure.com)
 
-The button communicates securely with an **Azure Function**, which performs the actual pipeline invocation using Azure DevOps REST APIs.
+2. Search for **“Function App”** in the top search bar
 
----
+3. Click **Create** and fill in the following:
 
-## 🧩 Features
+   | Setting               | Value                          |
+   | --------------------- | ------------------------------ |
+   | **Subscription**      | Select yours                   |
+   | **Resource Group**    | Create or choose one           |
+   | **Function App name** | `pipeline-trigger-fn` (unique) |
+   | **Runtime stack**     | `Node.js`                      |
+   | **Version**           | `20 LTS` or latest             |
+   | **Region**            | Nearest region to you          |
+   | **Hosting**           | Create new storage account     |
 
-- Adds a **"Trigger Pipeline"** button to work items.
-- Accepts user inputs for:
-  - Organization URL (`orgUrl`)
-  - Pipeline ID (`pipelineId`)
-  - Personal Access Token (`patToken`) – handled securely via Azure Function
-- Calls a **backend Azure Function** to securely invoke Azure DevOps REST API.
-- Avoids **CSP violations** and ensures best practices for secure token usage.
-
----
-
-```
-## 🗂️ Project Structure
-
-````
-Custom-Pipeline-Trigger-Button-extension/
-    dist/
-    ├── workItemControl.ts      # Main logic (written in TypeScript)
-    ├── workItemControl.html    # HTML for the UI layout
-    ├── styles.css              # Custom styles (optional)
-    ├── SDK.min.js 
-    src/
-    ├── workItemControl.ts      # Main logic (written in TypeScript)
-    ├── workItemControl.html    # HTML for the UI layout
-    ├── styles.css              # Custom styles (optional)
-    ├── SDK.min.js              # Azure DevOps SDK (bundled locally)
-    webpack.config.js           # Webpack build configuration
-    vss-extension.json          # Extension manifest file
-
-````
----
-
-## ⚙️ Prerequisites
-
-- [Node.js](https://nodejs.org/)
-- [TFX CLI](https://github.com/microsoft/tfs-cli):  
-  Install via:
-
-  ```bash
-  npm install -g tfx-cli
-````
----
-
-## 🏗️ Building the Extension
-
-Use Webpack to bundle your TypeScript and static assets:
-
-```bash
-npx webpack --config webpack.config.js
-```
-
-You can also just run:
-
-```bash
-npx webpack
-```
-
-> 🔁 Run this every time you make changes in `src/`.
+4. Click **Next** until **Review + Create**, then click **Create**
 
 ---
 
-## 📦 Packaging the Extension
+## ✅ Step 2: Add Function Code in the Portal
 
-After the build, generate a `.vsix` package:
+1. After deployment completes, click **Go to resource**
 
-```bash
-tfx extension create --manifest-globs vss-extension.json
+2. Under **Functions**, click **+ Add**
+
+3. Choose:
+
+   * **Development environment**: *“Develop in Portal”*
+   * **Template**: *HTTP trigger*
+   * Name: `TriggerPipeline`
+   * Authorization level: *Function*
+
+4. Once created, go to **Code + Test**
+
+5. Replace the default `index.js` or `index.ts` with your Azure Function logic (I can give you this if needed)
+
+---
+
+## ✅ Step 3: Add PAT Securely via Application Settings
+
+1. In the left menu, go to **Configuration**
+
+2. Under **Application settings**, click **+ New application setting**
+
+   | Name         | Value                                         |
+   | ------------ | --------------------------------------------- |
+   | `DEVOPS_PAT` | `your-personal-access-token` (paste PAT here) |
+
+3. Click **OK**, then **Save**
+
+🔒 Azure will automatically encrypt this and make it available via `process.env.DEVOPS_PAT`
+
+---
+
+## ✅ Step 4: Get the Function URL
+
+1. Go back to the function (`TriggerPipeline`)
+2. Click **Get Function URL**
+3. Choose **Default (Function key)** and copy the URL
+
+---
+
+## ✅ Step 5: Update Your Extension Frontend
+
+In your extension’s frontend (already updated in your `workItemControl.ts`), set the function URL like:
+
+```ts
+const azureFunctionUrl = "https://<your-func-name>.azurewebsites.net/api/TriggerPipeline?code=<function-key>";
 ```
 
-This will create a `.vsix` file in the root folder.
-
 ---
 
-## 🚀 Publishing to Marketplace
+## 🧪 Optional: Test it in Postman
 
-If you're a publisher and want to share or publish the extension:
-
-```bash
-tfx extension publish \
-  --publisher AnkitaGhogare \
-  --share-with ankitaghogare \
-  --token <your-PAT>
-```
-
-Replace `<your-PAT>` with your personal access token.
-
----
-
-## 🔐 Backend: Azure Function
-
-To securely trigger the pipeline:
-
-* Create an **HTTP-triggered Azure Function**.
-* The function should accept a JSON payload like:
+Send a POST request to that function with body:
 
 ```json
 {
-  "orgUrl": "https://dev.azure.com/yourorg",
-  "pipelineId": "12345",
-  "patToken": "**********"
+  "orgUrl": "https://dev.azure.com/ankitaghogare",
+  "project": "project2",
+  "pipelineId": "1234"
 }
 ```
 
-* It should make an authenticated `POST` request to:
-
-```
-{orgUrl}/{project}/_apis/pipelines/{pipelineId}/runs?api-version=7.1-preview.1
-```
-
-* Return a success or failure response to the frontend.
-
-> 💡 This ensures your **PAT is never exposed in the browser**, preventing CSP violations and improving security.
-
 ---
 
-## 🧪 Testing the Extension
+## ✅ Summary
 
-1. Install the extension in your Azure DevOps organization.
-2. Navigate to a work item.
-3. Enter pipeline info in the UI.
-4. Click **Trigger Pipeline**.
-5. View status updates in the extension UI.
+* ☁️ Azure Function created securely
+* 🔐 PAT stored in environment variable
+* 🔄 Frontend delegates pipeline triggering to backend
 
----
-
-## 🛡️ Content Security Policy (CSP) Notes
-
-* Direct calls from frontend to Azure DevOps APIs **will be blocked** by CSP.
-* Using an Azure Function as a **proxy** avoids this limitation.
-
----
-
-## 📝 License
-
-MIT
-
----
-
-## 🧠 Author
-
-**Ankita Ghogare**
+Would you like the `index.ts` code for the Azure Function as well now?

@@ -1,9 +1,9 @@
 {
   "manifestVersion": 1,
-  "id": "custom-pipeline-trigger-button",
-  "name": "Custom Pipeline Trigger Button",
+  "id": "pipeline-trigger-button-az-function",
+  "name": "Pipeline Trigger Az function",
   "publisher": "AnkitaGhogare",
-  "version": "1.1.9",
+  "version": "1.0.0",
   "description": "Adds a customizable button to work items to trigger pipelines.",
   "icons": {
     "default": "images/icon.png"

@@ -1,0 +1,184 @@
+Great! Let’s proceed with **Azure Function in Node.js (JavaScript)** — it's simple, widely used, and integrates well with Azure DevOps.
+
+---
+
+## ✅ Azure Function: Trigger DevOps Pipeline Securely
+
+### 📁 Project Structure
+
+```
+azure-function-pipeline-trigger/
+├── TriggerPipeline/
+│   ├── function.json
+│   ├── index.js
+├── .env (for PAT storage, local only)
+├── host.json
+├── local.settings.json
+├── package.json
+├── README.md
+```
+
+---
+
+### 📦 Step 1: Create Azure Function Project
+
+If you haven’t yet:
+
+```bash
+npm install -g azure-functions-core-tools@4
+func init azure-function-pipeline-trigger --javascript
+cd azure-function-pipeline-trigger
+func new --name TriggerPipeline --template "HTTP trigger" --authlevel "function"
+```
+
+---
+
+### 📜 Step 2: `TriggerPipeline/index.js`
+
+```js
+const fetch = require("node-fetch");
+
+module.exports = async function (context, req) {
+    const { orgUrl, project, pipelineId } = req.body;
+
+    if (!orgUrl || !project || !pipelineId) {
+        context.res = {
+            status: 400,
+            body: "Missing one of: orgUrl, project, pipelineId"
+        };
+        return;
+    }
+
+    const pat = process.env.AZURE_DEVOPS_PAT;
+    const url = `${orgUrl.replace(/\/$/, '')}/${project}/_apis/pipelines/${pipelineId}/runs?api-version=7.1-preview.1`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Basic ' + Buffer.from(':' + pat).toString('base64'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        });
+
+        const result = await response.text();
+
+        if (!response.ok) {
+            context.res = {
+                status: response.status,
+                body: `Failed to trigger pipeline: ${result}`
+            };
+        } else {
+            context.res = {
+                status: 200,
+                body: `Pipeline triggered successfully! Response: ${result}`
+            };
+        }
+    } catch (err) {
+        context.res = {
+            status: 500,
+            body: `Exception: ${err.message}`
+        };
+    }
+};
+```
+
+---
+
+### 🗂️ Step 3: `TriggerPipeline/function.json`
+
+```json
+{
+  "bindings": [
+    {
+      "authLevel": "function",
+      "type": "httpTrigger",
+      "direction": "in",
+      "name": "req",
+      "methods": ["post"],
+      "route": "trigger-pipeline"
+    },
+    {
+      "type": "http",
+      "direction": "out",
+      "name": "res"
+    }
+  ]
+}
+```
+
+---
+
+### 🔐 Step 4: Securely Store PAT
+
+#### `.env` (local only, don’t commit)
+
+```
+AZURE_DEVOPS_PAT=your-pat-token-here
+```
+
+#### `local.settings.json`:
+
+```json
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AZURE_DEVOPS_PAT": "useEnvIfNotUsingAzureKeyVault"
+  }
+}
+```
+
+---
+
+### 🧪 Step 5: Run Locally
+
+Install `node-fetch`:
+
+```bash
+npm install node-fetch
+```
+
+Then run:
+
+```bash
+func start
+```
+
+Test:
+
+```bash
+curl -X POST http://localhost:7071/api/trigger-pipeline \
+-H "Content-Type: application/json" \
+-d '{"orgUrl":"https://dev.azure.com/ankitaghogare","project":"project2","pipelineId":"1234"}'
+```
+
+---
+
+### 🚀 Step 6: Deploy to Azure
+
+```bash
+func azure functionapp publish <your-app-name>
+```
+
+> 🔒 **Store PAT in Azure Key Vault or App Settings** — never hardcode it.
+
+---
+
+## ✅ Your Frontend Will Call This
+
+Your DevOps extension can now send a POST to this Azure Function instead of directly triggering the pipeline. This way:
+
+* ✅ PAT is never exposed to the browser
+* ✅ Complies with Azure DevOps CSP
+* ✅ Easier to audit and secure
+
+---
+
+Let me know if you want help with:
+
+* Deploying it via Azure Portal or CLI
+* Securing the function with a key/token
+* Integrating with your existing extension code (e.g., changing `fetch(...)` to call this function endpoint)

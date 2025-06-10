@@ -3,7 +3,7 @@
   "id": "pipeline-trigger-button-az-function",
   "name": "Pipeline Trigger Az Function",
   "publisher": "AnkitaGhogare",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Adds a customizable button to work items to trigger AZ Function => Pipelines.",
   "icons": {
     "default": "images/icon.png"
@@ -17,14 +17,14 @@
     }
   ],
   "externals": [
-    "https://extensionpipelinetrigger.azurewebsites.net",
-    "https://dev.azure.com"
+    "https://extensionpipelinetrigger.azurewebsites.net"
   ],
   "contentSecurityPolicy": {
     "connect-src": [
       "'self'",
+      "https://extensionpipelinetrigger.azurewebsites.net",
       "https://dev.azure.com",
-      "https://*.azurewebsites.net"
+      "https://*.visualstudio.com"
     ],
     "img-src": [
       "'self'",

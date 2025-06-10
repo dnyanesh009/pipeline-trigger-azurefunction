@@ -1,10 +1,10 @@
 {
   "manifestVersion": 1,
   "id": "pipeline-trigger-button-az-function",
-  "name": "Pipeline Trigger Az function",
+  "name": "Pipeline Trigger Az Function",
   "publisher": "AnkitaGhogare",
-  "version": "1.0.1",
-  "description": "Adds a customizable button to work items to trigger pipelines.",
+  "version": "1.0.6",
+  "description": "Adds a customizable button to work items to trigger AZ Function => Pipelines.",
   "icons": {
     "default": "images/icon.png"
   },
@@ -16,11 +16,29 @@
       "id": "Microsoft.VisualStudio.Services"
     }
   ],
-  "externallyConnectable": {
-    "allowedOrigins": [
-      "https://dev.azure.com"
+  "externals": [
+    "https://extensionpipelinetrigger.azurewebsites.net",
+    "https://dev.azure.com"
+  ],
+  "contentSecurityPolicy": {
+    "connect-src": [
+      "'self'",
+      "https://dev.azure.com",
+      "https://*.azurewebsites.net"
+    ],
+    "img-src": [
+      "'self'",
+      "data:"
+    ],
+    "script-src": [
+      "'self'",
+      "'unsafe-inline'"
+    ],
+    "style-src": [
+      "'self'",
+      "'unsafe-inline'"
     ]
-  },  
+  },
   "contributions": [
     {
       "id": "pipeline-trigger-button-control",
@@ -29,11 +47,11 @@
       "targets": [
         "ms.vss-work-web.work-item-form"
       ],
-    "properties": {
-    "name": "Trigger Pipeline",
-    "uri": "dist/workItemControl.html",
-    "height": 150
-        }
+      "properties": {
+        "name": "Trigger Pipeline",
+        "uri": "dist/workItemControl.html",
+        "height": 180
+      }
     }
   ],
   "files": [

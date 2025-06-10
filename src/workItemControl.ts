@@ -1,7 +1,7 @@
 import * as SDK from "azure-devops-extension-sdk";
 import { getService } from "azure-devops-extension-sdk";
 import { IWorkItemFormService } from "azure-devops-extension-api/WorkItemTracking";
-import './styles.css'; // Inlined by webpack
+import './styles.css';
 
 SDK.init();
 
@@ -25,22 +25,24 @@ SDK.ready().then(async () => {
     const func_key = (document.getElementById("func_key") as HTMLInputElement).value.trim();
     const your_func_name = (document.getElementById("your_func_name") as HTMLInputElement).value.trim();
 
-
-
-    if (!pipelineId || !orgUrl || !project) {
+    if (!pipelineId || !orgUrl || !project || !your_func_name || !func_key) {
       statusDiv.textContent = "Please fill in all fields.";
       statusDiv.style.color = "red";
       return;
     }
 
     const normalizedOrgUrl = orgUrl.endsWith("/") ? orgUrl.slice(0, -1) : orgUrl;
-    const azureFunctionUrl = "https://<your_func_name>.azurewebsites.net/api/TriggerPipeline?code=<function-key>";
- 
+    const functionUrl = `https://${your_func_name}.azurewebsites.net/api/trigger-pipeline?code=${func_key}`;
+
+    const host = SDK.getHost() as any;
+    const hostUri = host?.uri ? (host.uri.endsWith("/") ? host.uri : host.uri + "/") : "https://dev.azure.com/";
+    const proxyUrl = `${hostUri}_apis/public/extensionproxy?url=${encodeURIComponent(functionUrl)}`;
+
     try {
       statusDiv.textContent = "Triggering pipeline via Azure Function...";
       statusDiv.style.color = "black";
 
-      const response = await fetch(azureFunctionUrl, {
+      const response = await fetch(proxyUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -53,8 +55,8 @@ SDK.ready().then(async () => {
       });
 
       if (!response.ok) {
-        const err = await response.text();
-        statusDiv.textContent = `Error: ${response.status} - ${err}`;
+        const errorText = await response.text();
+        statusDiv.textContent = `Error ${response.status}: ${errorText}`;
         statusDiv.style.color = "red";
         return;
       }
